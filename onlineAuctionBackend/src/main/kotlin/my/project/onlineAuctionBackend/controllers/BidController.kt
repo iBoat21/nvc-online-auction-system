@@ -2,6 +2,7 @@ package my.project.onlineAuctionBackend.controllers
 
 import my.project.onlineAuctionBackend.models.Bid
 import my.project.onlineAuctionBackend.services.BidService
+import my.project.onlineAuctionBackend.dto.BidRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -48,9 +49,23 @@ class BidController(private val bidService: BidService) {
 
     // เพิ่มการประมูลใหม่
     @PostMapping
-    fun createBid(@RequestBody bid: Bid): ResponseEntity<Bid> {
-        val createdBid = bidService.createBid(bid)
-        return ResponseEntity(createdBid, HttpStatus.CREATED)
+    fun createBid(@RequestBody request: BidRequest): ResponseEntity<Any> {
+        return try {
+            val bid = bidService.placeBid(request.productId, request.bidderId, request.bidAmount) // ✅ ใช้ placeBid() แทน
+            ResponseEntity.status(HttpStatus.CREATED).body(bid)
+        } catch (e: RuntimeException) {
+            ResponseEntity.badRequest().body(mapOf("message" to e.message))
+        }
+    }
+
+    @PostMapping("/place")
+    fun placeBid(@RequestBody request: BidRequest): ResponseEntity<Any> {
+        return try {
+            val bid = bidService.placeBid(request.productId, request.bidderId, request.bidAmount) // ✅ ใช้ bidderId & bidAmount ให้ตรงกัน
+            ResponseEntity.ok(mapOf("message" to "Bid placed successfully", "bid" to bid))
+        } catch (e: RuntimeException) {
+            ResponseEntity.badRequest().body(mapOf("message" to e.message))
+        }
     }
 
     // ลบการประมูล
