@@ -24,14 +24,18 @@ class SecurityConfig {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
+            .exceptionHandling {
+                it.authenticationEntryPoint(CustomAuthenticationEntryPoint())
+            }
             .authorizeHttpRequests {
-                it.requestMatchers("/api/auth/**").permitAll() // ✅ เปิดให้ Register/Login ใช้ได้
+                it.requestMatchers("/api/auth/**").permitAll()
                 it.requestMatchers("/api/users/**").permitAll()
-                it.requestMatchers("/api/products/**").permitAll() // ✅ เปิดให้ทุกคนใช้ API นี้
+                it.requestMatchers("/api/products/**").permitAll()
                 it.requestMatchers("/api/category/**").permitAll()
-                it.anyRequest().authenticated() // ❌ API อื่นต้อง Login ก่อน
+                it.requestMatchers("/api/auth/me").authenticated()
+                it.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                it.anyRequest().authenticated()
             }
         return http.build()
     }
-
 }

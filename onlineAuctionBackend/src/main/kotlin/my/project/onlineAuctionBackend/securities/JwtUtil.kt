@@ -43,7 +43,14 @@ import java.util.*
                 .signWith(key)
                 .compact()
         }
+
+        fun getEmailFromToken(token: String): String {
+            return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .payload.subject
+        }
+
+
     }
-
-
-}
