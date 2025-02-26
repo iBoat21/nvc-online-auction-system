@@ -5,6 +5,8 @@ import my.project.onlineAuctionBackend.services.ProductService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.util.*
 
 @RestController
@@ -65,6 +67,41 @@ class ProductController(private val productService: ProductService) {
     fun createProduct(@RequestBody product: Product): ResponseEntity<Product> {
         val createdProduct = productService.createProduct(product)
         return ResponseEntity(createdProduct, HttpStatus.CREATED)
+    }
+
+    @PostMapping("/create")
+    fun createProduct(
+        @RequestParam("itemName") itemName: String,
+        @RequestParam("itemDescription") itemDescription: String,
+        @RequestParam("itemPrice") itemPrice: Double,
+        @RequestParam("itemStartDate") itemStartDate: Date,
+        @RequestParam("itemEndDate") itemEndDate: Date,
+        @RequestParam("categoryId") categoryId: Long,
+        @RequestParam("image", required = false) image: MultipartFile?
+    ): ResponseEntity<Product> {
+
+        val imageUrl = image?.let {
+            val fileName = fileStorageService.storeFile(it)
+            ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/files/download/")
+                .path(fileName)
+                .toUriString()
+        }
+
+        val category = productService.findCategoryById(categoryId) ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+        val product = Product(
+            itemName = itemName,
+            itemDescription = itemDescription,
+            itemPrice = itemPrice,
+            itemStartDate = itemStartDate,
+            itemEndDate = itemEndDate,
+            itemPhoto = imageUrl,
+            category = category
+        )
+
+        val savedProduct = productService.saveProduct(product)
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct)
     }
 
     @PutMapping("/{id}")
