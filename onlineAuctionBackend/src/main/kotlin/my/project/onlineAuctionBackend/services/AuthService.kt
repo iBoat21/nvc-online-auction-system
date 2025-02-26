@@ -33,7 +33,6 @@ class AuthService(
             throw RuntimeException("Invalid username or password")
         }
 
-        // ✅ ใช้ `user.username!!` เพื่อให้แน่ใจว่า `username` ไม่เป็น null
         return jwtUtil.generateToken(user.username)
     }
 }
